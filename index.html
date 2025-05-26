@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase + Discord Auth</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="app.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Διαχείριση Χρηστών</h1>
+        
+        <div id="auth-section">
+            <button id="discord-login">Σύνδεση με Discord</button>
+            <button id="sign-out" style="display: none;">Αποσύνδεση</button>
+        </div>
+
+        <div id="user-data" style="display: none;">
+            <h2>Στοιχεία Χρήστη</h2>
+            <div id="user-info"></div>
+            <button id="get-name">Πάρε Όνομα</button>
+            <button id="get-email">Πάρε Email</button>
+            <button id="get-password">Πάρε Κωδικό</button>
+            <div id="result"></div>
+        </div>
+    </div>
+</body>
+</html>
