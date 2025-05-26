@@ -15,7 +15,7 @@ discordLoginBtn.addEventListener('click', async () => {
     const { error } = await supabaseClient.auth.signInWithOAuth({
         provider: 'discord',
         options: {
-            redirectTo: window.location.origin
+            redirectTo: window.location.origin + '/auth/callback'
         }
     });
 
