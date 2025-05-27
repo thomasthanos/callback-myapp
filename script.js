@@ -52,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Setup modal image upload for add/edit
     setupEditModalImageUpload();
 
-    // Image upload modal setup (unified for add/edit)
     function setupEditModalImageUpload() {
         const input = document.getElementById('imageUploadInput');
         const status = document.getElementById('imageUploadStatus');
@@ -100,49 +99,46 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-(async function () {
-    // Check if session exists
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session && session.user) {
-        currentUser = {
-            user_id: session.user.id,
-            email: session.user.email,
-            name: session.user.user_metadata.full_name || session.user.user_metadata.name || "",
-            image: session.user.user_metadata.avatar_url || "",
-        };
-        // ---- ΕΔΩ μπαίνει η εγγραφή στο discord_users (αν δεν υπάρχει) ----
-        (async function() {
-            const { data, error } = await supabase
-                .from('discord_users')
-                .select('user_id')
-                .eq('user_id', currentUser.user_id);
-
-            if (!data || data.length === 0) {
-                await supabase
+    // Check session and register discord user
+    (async function () {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && session.user) {
+            currentUser = {
+                user_id: session.user.id,
+                email: session.user.email,
+                name: session.user.user_metadata.full_name || session.user.user_metadata.name || "",
+                image: session.user.user_metadata.avatar_url || "",
+            };
+            // Register Discord user if not exists
+            (async function () {
+                const { data } = await supabase
                     .from('discord_users')
-                    .insert([{
-                        user_id: currentUser.user_id,
-                        email: currentUser.email,
-                        name: currentUser.name,
-                        image: currentUser.image
-                    }]);
-            }
-        })();
-        // ---- Τέλος discord_users καταγραφή ----
+                    .select('user_id')
+                    .eq('user_id', currentUser.user_id);
 
-        // *** Αυτά φορτώνουν τα κουμπιά του χρήστη ***
-        localStorage.setItem('currentUser', JSON.stringify(currentUser));
-        updateAuthUI();
-        loadButtons();
-        setupCategoryFilters();
-        setupSuperSearchbar();
-    } else {
-        localStorage.removeItem('currentUser');
-        currentUser = null;
-        updateAuthUI();
-    }
-})();
+                if (!data || data.length === 0) {
+                    await supabase
+                        .from('discord_users')
+                        .insert([{
+                            user_id: currentUser.user_id,
+                            email: currentUser.email,
+                            name: currentUser.name,
+                            image: currentUser.image
+                        }]);
+                }
+            })();
 
+            localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            updateAuthUI();
+            loadButtons();
+            setupCategoryFilters();
+            setupSuperSearchbar();
+        } else {
+            localStorage.removeItem('currentUser');
+            currentUser = null;
+            updateAuthUI();
+        }
+    })();
 
     // Logout
     async function handleLogout() {
@@ -246,12 +242,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 email,
                 password,
                 name,
-                category: activeCategory,
                 image,
-                link: "",
+                category: activeCategory,
                 can_add: true,
-                can_read: true
+                can_read: true,
+                discord_name: currentUser.name || ""
             };
+
             const { error } = await supabase
                 .from('user_password')
                 .insert([buttonData]);
@@ -308,16 +305,6 @@ document.addEventListener('DOMContentLoaded', () => {
         filterButtons(activeCategory);
     }
 
-    async function saveButton(buttonData) {
-        const { error } = await supabase
-            .from('user_password')
-            .insert([buttonData]);
-        if (error) {
-            showCopyNotification(`Σφάλμα αποθήκευσης: ${error.message}`);
-            return;
-        }
-    }
-
     async function loadButtons() {
         const activeCategory = document.querySelector('.category-btn.active')?.dataset.category || 'Others';
         filterButtons(activeCategory);
@@ -342,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Dynamic Button UI ---
-    function createButtonElement({ button_id, name, category, email, password, image, link }) {
+    function createButtonElement({ button_id, name, category, email, password, image, discord_name }) {
         const container = document.getElementById('buttonContainer');
         if (!container) return;
         const buttonDiv = document.createElement('div');
@@ -363,39 +350,43 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="toggle-password">👁️</span>
                     </div>
                     ` : ""}
-                    ${link ? `<a href="${link}" target="_blank" class="button-link">🔗 Link</a>` : ""}
                 </div>
             </div>
         `;
-        // Edit on click
-        buttonDiv.addEventListener('click', () => openEditModal(button_id));
-
+        // Add clipboard και toggle password events
         if (email) {
             const emailElement = buttonDiv.querySelector('.button-email');
-            emailElement.addEventListener('click', (e) => {
-                e.stopPropagation();
-                navigator.clipboard.writeText(email)
-                    .then(() => showCopyNotification('Email copied to clipboard!'));
-            });
+            if (emailElement) {
+                emailElement.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(email)
+                        .then(() => showCopyNotification('Email copied to clipboard!'));
+                });
+            }
         }
+
         if (password) {
             const passwordElement = buttonDiv.querySelector('.button-password');
             const toggleBtn = buttonDiv.querySelector('.toggle-password');
             let isVisible = false;
 
-            passwordElement.addEventListener('click', (e) => {
-                e.stopPropagation();
-                navigator.clipboard.writeText(password)
-                    .then(() => showCopyNotification('Password copied to clipboard!'));
-            });
+            if (passwordElement && toggleBtn) {
+                passwordElement.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(password)
+                        .then(() => showCopyNotification('Password copied to clipboard!'));
+                });
 
-            toggleBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                isVisible = !isVisible;
-                passwordElement.textContent = isVisible ? `🔑 ${password}` : '🔑 ••••••••';
-                toggleBtn.textContent = isVisible ? '👁️‍🗨️' : '👁️';
-            });
+                toggleBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    isVisible = !isVisible;
+                    passwordElement.textContent = isVisible ? `🔑 ${password}` : '🔑 ••••••••';
+                    toggleBtn.textContent = isVisible ? '👁️‍🗨️' : '👁️';
+                });
+            }
         }
+
+        buttonDiv.addEventListener('click', () => openEditModal(button_id));
         container.appendChild(buttonDiv);
     }
 
