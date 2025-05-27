@@ -24,8 +24,9 @@
                 <button id="export-btn" class="utility-btn">📤 Export</button>
                 <button id="import-btn" class="utility-btn">📥 Import</button>
                 <button id="discord-login-btn" class="utility-btn" style="background:#5865F2;color:#fff;">
-    <img src="https://cdn.simpleicons.org/discord/fff/5865F2" style="width:18px;vertical-align:middle;margin-right:6px;"> Discord Login
-</button>
+                    <img src="https://cdn.simpleicons.org/discord/fff/5865F2" style="width:18px;vertical-align:middle;margin-right:6px;"> Discord Login
+                </button>
+                <button id="logout-btn" class="utility-btn" style="display:none;">🔓 Logout</button>
             </div>
         </div>
     </header>
@@ -41,6 +42,7 @@
 
     <div class="button-container" id="buttonContainer"></div>
 
+    <!-- EDIT MODAL -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <h2>Επεξεργασία Στοιχείων</h2>
@@ -70,6 +72,7 @@
         </div>
     </div>
 
+    <!-- PASSWORD MODAL -->
     <div id="passwordModal" class="modal">
         <div class="modal-content">
             <h2 id="passwordModalTitle">Password</h2>
@@ -81,6 +84,7 @@
         </div>
     </div>
 
+    <!-- CONFIRM MODAL -->
     <div id="confirmModal" class="modal">
         <div class="modal-content">
             <p id="confirmModalMsg"></p>
@@ -90,9 +94,6 @@
             </div>
         </div>
     </div>
-
-
-
 
     <footer class="page-footer">
         <p id="footer-info">Password Manager — © ThomasT | Loading...</p>

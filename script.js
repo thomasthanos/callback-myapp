@@ -100,28 +100,49 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- Session Management (Discord) ---
-    (async function () {
-        // Check if session exists
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session && session.user) {
-            currentUser = {
-                user_id: session.user.id,
-                email: session.user.email,
-                name: session.user.user_metadata.full_name || session.user.user_metadata.name || "",
-                image: session.user.user_metadata.avatar_url || "",
-            };
-            localStorage.setItem('currentUser', JSON.stringify(currentUser));
-            updateAuthUI();
-            loadButtons();
-            setupCategoryFilters();
-            setupSuperSearchbar();
-        } else {
-            localStorage.removeItem('currentUser');
-            currentUser = null;
-            updateAuthUI();
-        }
-    })();
+(async function () {
+    // Check if session exists
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session && session.user) {
+        currentUser = {
+            user_id: session.user.id,
+            email: session.user.email,
+            name: session.user.user_metadata.full_name || session.user.user_metadata.name || "",
+            image: session.user.user_metadata.avatar_url || "",
+        };
+        // ---- ΕΔΩ μπαίνει η εγγραφή στο discord_users (αν δεν υπάρχει) ----
+        (async function() {
+            const { data, error } = await supabase
+                .from('discord_users')
+                .select('user_id')
+                .eq('user_id', currentUser.user_id);
+
+            if (!data || data.length === 0) {
+                await supabase
+                    .from('discord_users')
+                    .insert([{
+                        user_id: currentUser.user_id,
+                        email: currentUser.email,
+                        name: currentUser.name,
+                        image: currentUser.image
+                    }]);
+            }
+        })();
+        // ---- Τέλος discord_users καταγραφή ----
+
+        // *** Αυτά φορτώνουν τα κουμπιά του χρήστη ***
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        updateAuthUI();
+        loadButtons();
+        setupCategoryFilters();
+        setupSuperSearchbar();
+    } else {
+        localStorage.removeItem('currentUser');
+        currentUser = null;
+        updateAuthUI();
+    }
+})();
+
 
     // Logout
     async function handleLogout() {
