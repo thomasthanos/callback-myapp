@@ -588,40 +588,73 @@ h1 {
     padding: 16px 0 10px 0;
 }
 
-@media (max-width: 900px) {
-    .dynamic-button {
-        min-width: 80vw;
-        max-width: 95vw;
-    }
-    .super-searchbar {
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        max-width: 98vw;
-        padding: 1.2rem 0.3rem;
-    }
-    #searchInput {
-        min-width: 120px;
-        width: 100%;
-    }
+/* Login Modal */
+#loginModal .modal-content {
+    background: linear-gradient(145deg, #1e2629, #161d20);
+    padding: 1.8rem 1.6rem 1.4rem;
+    border-radius: 14px;
+    border: 1.5px solid rgba(80, 200, 255, 0.25);
+    max-width: 420px;
+    width: 95vw;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
-@media (max-width: 600px) {
-    .dynamic-button {
-        min-width: 97vw;
-        max-width: 99vw;
-    }
-    .header-flex {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-    .categories-nav,
-    .utility-nav {
-        margin-right: 0;
-        padding: 0.4rem 0.3rem;
-    }
-    h1 {
-        font-size: 1.3rem;
-        margin-left: 8px;
-    }
+#loginModal h2 {
+    margin: 0 0 0.4rem 0;
+    font-size: 1.4rem;
+    color: #50c8ff;
+    text-align: center;
+    font-weight: 600;
+}
+
+#loginModal label {
+    color: #89d7ff;
+    font-size: 0.92rem;
+    margin-bottom: 0.1rem;
+    font-weight: 500;
+    display: block;
+}
+
+#loginModal input[type="email"],
+#loginModal input[type="password"] {
+    margin: 0.1rem 0 0.4rem 0;
+    font-size: 0.96rem;
+    background: rgba(255,255,255,0.08);
+    color: #f0f4f8;
+    border-radius: 8px;
+    border: 1px solid rgba(80,200,255,0.18);
+    padding: 0.7rem 1rem;
+    width: 100%;
+    transition: all 0.2s;
+}
+
+#loginModal input:focus {
+    border-color: #50c8ff;
+    background: rgba(80,200,255,0.12);
+    box-shadow: 0 0 0 2px rgba(80,200,255,0.1);
+}
+
+#submit-login-button {
+    background: linear-gradient(145deg, #50c8ff, #3aaaff);
+    color: white;
+    border: none;
+}
+
+#submit-login-button:hover {
+    background: linear-gradient(145deg, #3aaaff, #2a8cff);
+    box-shadow: 0 2px 8px rgba(58, 170, 255, 0.3);
+}
+
+#cancel-login-button {
+    background: rgba(255,255,255,0.08);
+    color: #e0e6f0;
+    border: 1px solid rgba(255,255,255,0.15);
+}
+
+#cancel-login-button:hover {
+    background: rgba(255,255,255,0.15);
+    color: white;
 }

@@ -5,108 +5,99 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minimal Dashboard 2025</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
 <body>
-    <header id="main-header">
+    <header>
         <div class="header-flex">
-            <h1 id="dashboard-title">Minimal Dashboard 2025</h1>
+            <h1>Minimal Dashboard 2025</h1>
             <nav class="categories-nav">
-                <button class="category-btn active" data-category="Email">Email</button>
+                <button class="category-btn" data-category="Google">Google</button>
                 <button class="category-btn" data-category="Gaming">Gaming</button>
                 <button class="category-btn" data-category="Social Media">Social Media</button>
                 <button class="category-btn" data-category="Streaming">Streaming</button>
-                <button class="category-btn" data-category="Development">Development</button>
-                <button class="category-btn" data-category="Utilities">Utilities</button>
+                <button class="category-btn" data-category="Εφαρμογες">Εφαρμογες</button>
+                <button class="category-btn active" data-category="Others">Others</button>
             </nav>
-            <nav class="utility-nav">
-                <button id="export-btn" class="utility-btn" title="Export to JSON">📤 Export</button>
-                <button id="import-btn" class="utility-btn" title="Import from JSON">📥 Import</button>
-                <input type="file" id="import-file" accept=".json" style="display: none;">
-            </nav>
+            <div class="utility-nav">
+                <button id="export-btn" class="utility-btn">📤 Export</button>
+                <button id="import-btn" class="utility-btn">📥 Import</button>
+                <button id="discord-login-btn" class="utility-btn" style="background:#5865F2;color:#fff;">
+    <img src="https://cdn.simpleicons.org/discord/fff/5865F2" style="width:18px;vertical-align:middle;margin-right:6px;"> Discord Login
+</button>
+            </div>
         </div>
     </header>
 
-    <main id="main-content">
+    <input type="file" id="import-file" accept=".json" style="display: none;">
+    
+    <div class="super-searchbar button-section">
+        <input type="text" id="searchInput" placeholder="Αναζήτηση ή νέο κουμπί...">
+        <button id="mainActionBtn">➕ Προσθήκη</button>
+        <button id="editBtn" style="display: none;">✏️ Edit</button>
+        <button id="deleteBtn" style="display: none;">🗑️ Delete</button>
+    </div>
 
-        <!-- SUPER SEARCHBAR -->
-        <section class="super-searchbar">
-            <input type="text" id="searchInput" placeholder="Γράψε όνομα κουμπιού...">
-            <button id="mainActionBtn">➕ Προσθήκη</button>
-            <button id="editBtn" style="display:none;">✏️ Edit</button>
-            <button id="deleteBtn" style="display:none;">🗑️ Delete</button>
-        </section>
-        <!-- /SUPER SEARCHBAR -->
+    <div class="button-container" id="buttonContainer"></div>
 
-        <section class="button-section" id="button-section">
-            <div class="button-container" id="buttonContainer"></div>
-        </section>
-
-        <!-- Modal for editing email and password -->
-<div id="editModal" class="modal">
-    <div class="modal-content">
-        <h2 id="modal-title">Επεξεργασία Στοιχείων</h2>
-        
-        <label for="editButtonName">Όνομα:</label>
-        <input type="text" id="editButtonName" placeholder="Όνομα κουμπιού">
-        
-        <label for="editEmail">Email:</label>
-        <input type="email" id="editEmail" placeholder="Email">
-        
-        <label for="editPassword">Κωδικός:</label>
-        <input type="password" id="editPassword" placeholder="Κωδικός">
-        
-        <div class="image-upload-section">
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2>Επεξεργασία Στοιχείων</h2>
+            <label for="editButtonName">Όνομα:</label>
+            <input type="text" id="editButtonName">
+            <label for="editEmail">Email:</label>
+            <input type="email" id="editEmail">
+            <label for="editPassword">Κωδικός:</label>
+            <input type="password" id="editPassword">
             <label for="editImage">Εικόνα (URL):</label>
             <div class="input-with-x">
-                <input type="text" id="editImage" placeholder="Link εικόνας">
-                <button class="remove-img-x-btn" id="removeImageBtn" style="display:none;">×</button>
+                <input type="text" id="editImage">
+                <button class="remove-img-x-btn" id="removeImageBtn" style="display: none;">×</button>
             </div>
-            
-            <div class="upload-controls">
-                <button class="upload-btn" id="uploadTrigger">
-                    <span>📁 Upload</span>
-                </button>
-                <div class="upload-status" id="imageUploadStatus"></div>
-                <div class="img-preview" id="imagePreview"></div>
-                <input type="file" id="imageUploadInput" accept="image/*" style="display:none;">
+            <div class="image-upload-section">
+                <div class="upload-controls">
+                    <button class="upload-btn" id="uploadTrigger">📁 Upload</button>
+                    <p class="upload-status" id="imageUploadStatus"></p>
+                    <div class="img-preview" id="imagePreview"></div>
+                </div>
+                <input type="file" id="imageUploadInput" accept="image/*">
             </div>
-        </div>
-        
-        <div class="modal-buttons">
-            <button id="cancel-edit-button">Ακύρωση</button>
-            <button id="save-edit-button">Αποθήκευση</button>
+            <div class="modal-buttons">
+                <button id="cancel-edit-button">Ακύρωση</button>
+                <button id="save-edit-button">Αποθήκευση</button>
+            </div>
         </div>
     </div>
-</div>
-    </main>
-    <!-- Modal για password export/import -->
+
     <div id="passwordModal" class="modal">
-        <div class="modal-content" style="gap: 1rem;">
+        <div class="modal-content">
             <h2 id="passwordModalTitle">Password</h2>
-            <input type="password" id="passwordModalInput" placeholder="Βάλε το password..." autocomplete="off">
-            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                <button id="passwordModalCancel" style="min-width: 90px;">Ακύρωση</button>
-                <button id="passwordModalOk" style="min-width: 90px;">OK</button>
+            <input type="password" id="passwordModalInput">
+            <div class="modal-buttons">
+                <button id="passwordModalCancel">Ακύρωση</button>
+                <button id="passwordModalOk">OK</button>
             </div>
         </div>
     </div>
 
-    <!-- Notify stack για ειδοποιήσεις -->
-	 <div id="confirmModal" class="modal">
-    <div class="modal-content" style="max-width:340px;align-items:center;text-align:center;">
-        <div id="confirmModalMsg" style="margin-bottom: 1.2rem; font-size: 1.1rem;"></div>
-        <div style="display:flex;gap:1.2rem;justify-content:center;width:100%;">
-            <button id="confirmModalOk" style="background:linear-gradient(145deg,#46e188,#27b77d);min-width:90px;">OK</button>
-            <button id="confirmModalCancel" style="background:linear-gradient(145deg,#fd6464,#d93e3e);min-width:90px;">Cancel</button>
+    <div id="confirmModal" class="modal">
+        <div class="modal-content">
+            <p id="confirmModalMsg"></p>
+            <div class="modal-buttons">
+                <button id="confirmModalCancel">Cancel</button>
+                <button id="confirmModalOk">OK</button>
+            </div>
         </div>
     </div>
-</div>
 
-    <div id="notify-container"></div>
+
+
+
     <footer class="page-footer">
-        <div class="copyright-info" id="footer-info"></div>
+        <p id="footer-info">Password Manager — © ThomasT | Loading...</p>
     </footer>
+
     <script src="script.js"></script>
 </body>
 </html>
