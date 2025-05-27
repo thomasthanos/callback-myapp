@@ -1,49 +1,57 @@
 <!DOCTYPE html>
-<html lang="el">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minimal Dashboard 2025</title>
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script src="script.js"></script>
 </head>
 <body>
     <header>
         <div class="header-flex">
             <h1>Minimal Dashboard 2025</h1>
             <nav class="categories-nav">
-                <button class="category-btn" data-category="Google">Google</button>
+                <button class="category-btn active" data-category="Email">Google</button>
                 <button class="category-btn" data-category="Gaming">Gaming</button>
                 <button class="category-btn" data-category="Social Media">Social Media</button>
                 <button class="category-btn" data-category="Streaming">Streaming</button>
-                <button class="category-btn" data-category="Εφαρμογες">Εφαρμογες</button>
-                <button class="category-btn active" data-category="Others">Others</button>
+                <button class="category-btn" data-category="Development">Εφαρμογες</button>
+                <button class="category-btn" data-category="Utilities">Others</button>
             </nav>
             <div class="utility-nav">
-                <button id="export-btn" class="utility-btn">📤 Export</button>
-                <button id="import-btn" class="utility-btn">📥 Import</button>
-                <button id="discord-login-btn" class="utility-btn" style="background:#5865F2;color:#fff;">
-                    <img src="https://cdn.simpleicons.org/discord/fff/5865F2" style="width:18px;vertical-align:middle;margin-right:6px;"> Discord Login
-                </button>
-                <button id="logout-btn" class="utility-btn" style="display:none;">🔓 Logout</button>
+                <div class="profile-container" id="profileContainer" style="display: none;">
+                    <div class="profile-info">
+                        <img id="profileAvatar" src="" alt="Avatar" class="profile-avatar">
+                        <span id="profileName"></span>
+                    </div>
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <button class="dropdown-item" id="export-btn">📤 Export</button>
+                        <button class="dropdown-item" id="import-btn">📥 Import</button>
+                        <button class="dropdown-item" id="logout-btn">🔓 Logout</button>
+                    </div>
+                </div>
+                <button class="utility-btn" id="discord-login-btn">👾 Discord Login</button>
             </div>
         </div>
     </header>
 
-    <input type="file" id="import-file" accept=".json" style="display: none;">
-    
-    <div class="super-searchbar button-section">
-        <input type="text" id="searchInput" placeholder="Αναζήτηση ή νέο κουμπί...">
+    <input type="file" id="import-file" accept=".json">
+
+    <div class="super-searchbar">
+        <input type="text" id="searchInput" placeholder="Αναζήτηση ή προσθήκη κουμπιού...">
         <button id="mainActionBtn">➕ Προσθήκη</button>
-        <button id="editBtn" style="display: none;">✏️ Edit</button>
-        <button id="deleteBtn" style="display: none;">🗑️ Delete</button>
+        <button id="editBtn">✏️ Edit</button>
+        <button id="deleteBtn">🗑️ Delete</button>
     </div>
 
-    <div class="button-container" id="buttonContainer"></div>
+    <div class="button-section">
+        <div class="button-container" id="buttonContainer"></div>
+    </div>
 
-    <!-- EDIT MODAL -->
-    <div id="editModal" class="modal">
+    <div class="modal" id="editModal">
         <div class="modal-content">
             <h2>Επεξεργασία Στοιχείων</h2>
             <label for="editButtonName">Όνομα:</label>
@@ -55,15 +63,15 @@
             <label for="editImage">Εικόνα (URL):</label>
             <div class="input-with-x">
                 <input type="text" id="editImage">
-                <button class="remove-img-x-btn" id="removeImageBtn" style="display: none;">×</button>
+                <button class="remove-img-x-btn" id="removeImageBtn" style="display:none;">×</button>
             </div>
             <div class="image-upload-section">
+                <input type="file" id="imageUploadInput" accept="image/*">
                 <div class="upload-controls">
                     <button class="upload-btn" id="uploadTrigger">📁 Upload</button>
                     <p class="upload-status" id="imageUploadStatus"></p>
                     <div class="img-preview" id="imagePreview"></div>
                 </div>
-                <input type="file" id="imageUploadInput" accept="image/*">
             </div>
             <div class="modal-buttons">
                 <button id="cancel-edit-button">Ακύρωση</button>
@@ -72,8 +80,7 @@
         </div>
     </div>
 
-    <!-- PASSWORD MODAL -->
-    <div id="passwordModal" class="modal">
+    <div class="modal" id="passwordModal">
         <div class="modal-content">
             <h2 id="passwordModalTitle">Password</h2>
             <input type="password" id="passwordModalInput">
@@ -84,9 +91,9 @@
         </div>
     </div>
 
-    <!-- CONFIRM MODAL -->
-    <div id="confirmModal" class="modal">
+    <div class="modal" id="confirmModal">
         <div class="modal-content">
+            <h2>Επιβεβαίωση</h2>
             <p id="confirmModalMsg"></p>
             <div class="modal-buttons">
                 <button id="confirmModalCancel">Cancel</button>
@@ -95,10 +102,8 @@
         </div>
     </div>
 
-    <footer class="page-footer">
-        <p id="footer-info">Password Manager — © ThomasT | Loading...</p>
+    <footer class="page-footer" id="footer-info">
+        Password Manager — © ThomasT | Loading...
     </footer>
-
-    <script src="script.js"></script>
 </body>
 </html>

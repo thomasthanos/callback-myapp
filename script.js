@@ -1,11 +1,13 @@
+
 document.addEventListener('DOMContentLoaded', () => {
+
     // Supabase client
     const supabase = window.supabase.createClient(
         'https://codjpvcfsodohbsmmxap.supabase.co/',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNvZGpwdmNmc29kb2hic21teGFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyNTgzOTksImV4cCI6MjA2MzgzNDM5OX0.6X2YcPwh0mbOkMC1UXDIlMorNOYNwi_i2VZQYUureX4'
     );
+    window.supabaseClient = supabase;
 
-    let currentUser = null;
 
     // Discord Login Button Event
     document.getElementById('discord-login-btn').onclick = async function () {
@@ -100,15 +102,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Check session and register discord user
+    
     (async function () {
         const { data: { session } } = await supabase.auth.getSession();
         if (session && session.user) {
-            currentUser = {
-                user_id: session.user.id,
-                email: session.user.email,
-                name: session.user.user_metadata.full_name || session.user.user_metadata.name || "",
-                image: session.user.user_metadata.avatar_url || "",
-            };
+window.currentUser = {
+  user_id: session.user.id,
+  email: session.user.email,
+  name: session.user.user_metadata.full_name || session.user.user_metadata.name || "",
+  image: session.user.user_metadata.avatar_url || "",
+};
+
             // Register Discord user if not exists
             (async function () {
                 const { data } = await supabase
@@ -152,30 +156,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- UI State for Auth ---
     function updateAuthUI() {
-        const loginBtn = document.getElementById('login-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-        const exportBtn = document.getElementById('export-btn');
-        const importBtn = document.getElementById('import-btn');
+        const profileContainer = document.getElementById('profileContainer');
+        const profileName = document.getElementById('profileName');
+        const profileAvatar = document.getElementById('profileAvatar');
+        const discordBtn = document.getElementById('discord-login-btn');
         const searchBar = document.querySelector('.super-searchbar');
         const buttonContainer = document.getElementById('buttonContainer');
-        const discordBtn = document.getElementById('discord-login-btn');
 
         if (currentUser) {
-            if (loginBtn) loginBtn.style.display = 'none';
+            if (profileContainer) {
+                profileContainer.style.display = '';
+                profileName.textContent = currentUser.name || 'User';
+                profileAvatar.src = currentUser.image || 'https://via.placeholder.com/24';
+            }
             if (discordBtn) discordBtn.style.display = 'none';
-            if (logoutBtn) logoutBtn.style.display = '';
-            if (exportBtn) exportBtn.style.display = '';
-            if (importBtn) importBtn.style.display = '';
             if (searchBar) searchBar.style.display = '';
             if (buttonContainer) buttonContainer.style.display = '';
         } else {
-            if (loginBtn) loginBtn.style.display = 'none';
+            if (profileContainer) profileContainer.style.display = 'none';
             if (discordBtn) discordBtn.style.display = '';
-            if (logoutBtn) logoutBtn.style.display = 'none';
-            if (exportBtn) exportBtn.style.display = 'none';
-            if (importBtn) importBtn.style.display = 'none';
             if (searchBar) searchBar.style.display = 'none';
             if (buttonContainer) buttonContainer.style.display = 'none';
+        }
+
+        // Setup dropdown toggle
+        const profileInfo = document.querySelector('.profile-info');
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        if (profileInfo && dropdownMenu) {
+            profileInfo.addEventListener('click', () => {
+                dropdownMenu.classList.toggle('active');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!profileInfo.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                    dropdownMenu.classList.remove('active');
+                }
+            });
         }
     }
 
@@ -310,23 +327,27 @@ document.addEventListener('DOMContentLoaded', () => {
         filterButtons(activeCategory);
     }
 
-    async function filterButtons(category) {
-        const container = document.getElementById('buttonContainer');
-        if (!container) return;
-        container.innerHTML = '';
-        const { data: buttons } = await supabase
-            .from('user_password')
-            .select('*')
-            .eq('user_id', currentUser.user_id)
-            .eq('category', category);
+async function filterButtons(category) {
+    const container = document.getElementById('buttonContainer');
+    if (!container) return;
+    container.innerHTML = '';
 
-        if (buttons) buttons.forEach(createButtonElement);
+    const { data: buttons } = await supabase
+        .from('user_password')
+        .select('*')
+        .eq('user_id', currentUser.user_id)
+        .eq('category', category);
 
-        document.querySelectorAll('.category-btn').forEach(btn => {
-            if (btn.dataset.category === category) btn.classList.add('active');
-            else btn.classList.remove('active');
-        });
-    }
+    if (buttons) buttons.forEach(createButtonElement);
+
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        if (btn.dataset.category === category) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+}
+
+
+
 
     // --- Dynamic Button UI ---
     function createButtonElement({ button_id, name, category, email, password, image, discord_name }) {
