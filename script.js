@@ -845,5 +845,34 @@ async function setupSuperSearchbar() {
     updateFooterInfo();
     setInterval(updateFooterInfo, 1000);
 
+// Info Panel Functionality
+document.getElementById('infoBtn').onclick = function(e) {
+  e.stopPropagation();
+  document.getElementById('infoSidePanel').classList.toggle('active');
+};
+
+document.getElementById('closeInfoPanel').onclick = function(e) {
+  e.stopPropagation();
+  document.getElementById('infoSidePanel').classList.remove('active');
+};
+
+// Close when clicking outside
+document.addEventListener('click', function(e) {
+  const infoPanel = document.getElementById('infoSidePanel');
+  const isClickInsidePanel = infoPanel.contains(e.target);
+  const isInfoButton = e.target === document.getElementById('infoBtn') || 
+                      document.getElementById('infoBtn').contains(e.target);
+
+  if (infoPanel.classList.contains('active') && !isClickInsidePanel && !isInfoButton) {
+    infoPanel.classList.remove('active');
+  }
+});
+
+// Close with Escape key
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('infoSidePanel').classList.contains('active')) {
+    document.getElementById('infoSidePanel').classList.remove('active');
+  }
+});
 
 });
