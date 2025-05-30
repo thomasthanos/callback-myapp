@@ -1,6 +1,4 @@
-
 document.addEventListener('DOMContentLoaded', () => {
-
     // Supabase client
     const supabase = window.supabase.createClient(
         'https://codjpvcfsodohbsmmxap.supabase.co/',
@@ -8,6 +6,79 @@ document.addEventListener('DOMContentLoaded', () => {
     );
     window.supabaseClient = supabase;
 
+    const DEFAULT_CATEGORIES = ['Email', 'Gaming', 'Social Media', 'Streaming', 'Development','Utilities'];
+
+    // --- Dynamic Categories per User ---
+    async function loadCategories() {
+        const nav = document.getElementById('categoriesNav');
+        // Καθαρίζει όλες εκτός από το addCategoryBtn
+        Array.from(nav.querySelectorAll('.category-btn')).forEach(btn => {
+            if (btn.id !== 'addCategoryBtn') btn.remove();
+        });
+        // Φόρτωσε custom categories από Supabase
+        let categories = [...DEFAULT_CATEGORIES];
+        if (currentUser) {
+            const { data } = await supabase
+                .from('user_categories')
+                .select('category_name')
+                .eq('user_id', currentUser.user_id);
+            if (data && data.length > 0) {
+                data.forEach(row => {
+                    if (!categories.includes(row.category_name)) categories.push(row.category_name);
+                });
+            }
+        }
+        // Πρόσθεσε τα κουμπιά στο nav
+categories.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'category-btn';
+    btn.dataset.category = cat;
+    btn.textContent = cat;
+    btn.onclick = () => {
+        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterButtons(cat);
+    };
+    nav.insertBefore(btn, document.getElementById('addCategoryBtn'));
+});
+
+        // Ενεργοποίησε το πρώτο
+        setTimeout(() => {
+            let first = nav.querySelector('.category-btn:not(#addCategoryBtn)');
+            if (first) {
+                first.classList.add('active');
+                filterButtons(first.dataset.category);
+            }
+        }, 80);
+    }
+
+document.getElementById('addCategoryBtn').onclick = async function () {
+    if (!currentUser) {
+        alert("Πρέπει να είσαι συνδεδεμένος για να προσθέσεις κατηγορία!");
+        return;
+    }
+    const name = (prompt("Όνομα νέας κατηγορίας:") || "").trim();
+    if (!name) return;
+
+        // Ελέγχει αν υπάρχει ήδη
+        const exists = Array.from(document.querySelectorAll('.category-btn'))
+            .some(btn => btn.dataset.category && btn.dataset.category.toLowerCase() === name.toLowerCase());
+        if (exists) {
+            alert('Υπάρχει ήδη αυτή η κατηγορία!');
+            return;
+        }
+        // Αποθήκευση στο Supabase
+        if (currentUser) {
+            const { error } = await supabase
+                .from('user_categories')
+                .insert([{ user_id: currentUser.user_id, category_name: name }]);
+            if (error) {
+                alert('Σφάλμα κατά την αποθήκευση!');
+                return;
+            }
+        }
+        await loadCategories(); // Επαναφόρτωση όλων
+    };
 
     // Discord Login Button Event
     document.getElementById('discord-login-btn').onclick = async function () {
@@ -25,21 +96,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Logout Event
     document.getElementById('logout-btn').onclick = handleLogout;
 
-    // Imgur upload helper
+    // Imgur upload helper (όπως είχες)
     async function uploadToImgur(file, onSuccess, onError) {
         const clientId = "4707ced68436834";
         const formData = new FormData();
         formData.append("image", file);
-
         try {
             const res = await fetch("https://api.imgur.com/3/image", {
                 method: "POST",
-                headers: {
-                    Authorization: "Client-ID " + clientId,
-                },
+                headers: { Authorization: "Client-ID " + clientId },
                 body: formData,
             });
-
             const data = await res.json();
             if (data.success) {
                 onSuccess(data.data.link);
@@ -51,9 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Setup modal image upload for add/edit
     setupEditModalImageUpload();
-
     function setupEditModalImageUpload() {
         const input = document.getElementById('imageUploadInput');
         const status = document.getElementById('imageUploadStatus');
@@ -61,16 +126,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const imgPreviewDiv = document.getElementById('imagePreview');
         const removeBtn = document.getElementById('removeImageBtn');
         const uploadTrigger = document.getElementById('uploadTrigger');
-
         if (!input || !uploadTrigger || !status || !urlInput || !imgPreviewDiv || !removeBtn) return;
-
         input.style.display = 'none';
-
         uploadTrigger.addEventListener('click', (e) => {
             e.preventDefault();
             input.click();
         });
-
         input.addEventListener('change', async function () {
             const file = this.files[0];
             if (!file) return;
@@ -90,7 +151,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert("Imgur upload error: " + errorMsg);
             });
         });
-
         removeBtn.addEventListener('click', function () {
             input.value = "";
             imgPreviewDiv.style.backgroundImage = "";
@@ -102,24 +162,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Check session and register discord user
-    
     (async function () {
         const { data: { session } } = await supabase.auth.getSession();
         if (session && session.user) {
-window.currentUser = {
-  user_id: session.user.id,
-  email: session.user.email,
-  name: session.user.user_metadata.full_name || session.user.user_metadata.name || "",
-  image: session.user.user_metadata.avatar_url || "",
-};
-
+            window.currentUser = {
+                user_id: session.user.id,
+                email: session.user.email,
+                name: session.user.user_metadata.full_name || session.user.user_metadata.name || "",
+                image: session.user.user_metadata.avatar_url || "",
+            };
             // Register Discord user if not exists
             (async function () {
                 const { data } = await supabase
                     .from('discord_users')
                     .select('user_id')
                     .eq('user_id', currentUser.user_id);
-
                 if (!data || data.length === 0) {
                     await supabase
                         .from('discord_users')
@@ -131,11 +188,10 @@ window.currentUser = {
                         }]);
                 }
             })();
-
             localStorage.setItem('currentUser', JSON.stringify(currentUser));
             updateAuthUI();
+            await loadCategories(); // --- HERE ---
             loadButtons();
-            setupCategoryFilters();
             setupSuperSearchbar();
         } else {
             localStorage.removeItem('currentUser');
@@ -430,26 +486,166 @@ async function filterButtons(category) {
     }
 
     // --- Category filters ---
-    function setupCategoryFilters() {
-        const categoryButtons = document.querySelectorAll('.category-btn');
-        categoryButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                categoryButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                filterButtons(button.dataset.category);
-            });
+function setupCategoryFilters() {
+    const categoryButtons = document.querySelectorAll('.category-btn:not(#addCategoryBtn)');
+    categoryButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            filterButtons(button.dataset.category);
         });
-    }
+    });
+}
+
 
     // --- Super Searchbar: Add/Edit/Delete quick actions ---
-    async function setupSuperSearchbar() {
-        const input = document.getElementById('searchInput');
-        const addBtn = document.getElementById('mainActionBtn');
-        const editBtn = document.getElementById('editBtn');
-        const deleteBtn = document.getElementById('deleteBtn');
+async function setupSuperSearchbar() {
+    const input = document.getElementById('searchInput');
+    const addBtn = document.getElementById('mainActionBtn');
+    const editBtn = document.getElementById('editBtn');
+    const deleteBtn = document.getElementById('deleteBtn');
 
-        async function refreshButtons() {
+    async function refreshButtons() {
+        const name = input.value.trim();
+        const activeCategory = document.querySelector('.category-btn.active')?.dataset.category || 'Others';
+
+        // Check if input matches a category (case-insensitive)
+        const allCategoryBtns = Array.from(document.querySelectorAll('.category-btn'));
+        const foundCategoryBtn = allCategoryBtns.find(btn =>
+            btn.dataset.category && btn.dataset.category.toLowerCase() === name.toLowerCase()
+        );
+        // Είναι custom αν δεν είναι default:
+        const isCustomCategory = foundCategoryBtn &&
+            !DEFAULT_CATEGORIES.includes(foundCategoryBtn.dataset.category);
+
+        // Check για κουμπί (όπως πριν)
+        const { data: buttons } = await supabase
+            .from('user_password')
+            .select('*')
+            .eq('user_id', currentUser.user_id)
+            .eq('category', activeCategory);
+
+        const exists = buttons.find(b => b.name.toLowerCase() === name.toLowerCase());
+
+        if (name === "") {
+            addBtn.style.display = '';
+            addBtn.textContent = '➕ Προσθήκη';
+            editBtn.style.display = 'none';
+            deleteBtn.style.display = 'none';
+        } else if (exists) {
+            addBtn.style.display = 'none';
+            editBtn.style.display = '';
+            deleteBtn.style.display = '';
+            deleteBtn.textContent = 'Διαγραφή'; // κουμπιού
+        } else if (isCustomCategory) {
+            addBtn.style.display = 'none';
+            editBtn.style.display = 'none';
+            deleteBtn.style.display = '';
+            deleteBtn.textContent = 'Διαγραφή Κατηγορίας';
+        } else {
+            addBtn.style.display = '';
+            addBtn.textContent = '➕ Προσθήκη';
+            editBtn.style.display = 'none';
+            deleteBtn.style.display = 'none';
+        }
+    }
+
+    input.addEventListener('input', refreshButtons);
+
+    editBtn.onclick = async () => {
+        const name = input.value.trim();
+        const activeCategory = document.querySelector('.category-btn.active')?.dataset.category || 'Others';
+        const { data: buttons } = await supabase
+            .from('user_password')
+            .select('*')
+            .eq('user_id', currentUser.user_id)
+            .eq('category', activeCategory);
+
+        const btn = buttons.find(b => b.name.toLowerCase() === name.toLowerCase());
+        if (!btn) {
+            showCopyNotification('Δεν βρέθηκε κουμπί για edit');
+            return;
+        }
+        openEditModal(btn.button_id);
+    };
+
+    deleteBtn.onclick = async () => {
+        const name = input.value.trim();
+
+        // *** Ελέγχει αν είναι custom κατηγορία ***
+        const allCategoryBtns = Array.from(document.querySelectorAll('.category-btn'));
+        const foundCategoryBtn = allCategoryBtns.find(btn =>
+            btn.dataset.category && btn.dataset.category.toLowerCase() === name.toLowerCase()
+        );
+        const isCustomCategory = foundCategoryBtn &&
+            !DEFAULT_CATEGORIES.includes(foundCategoryBtn.dataset.category);
+
+        if (isCustomCategory) {
+            customConfirm(`Θέλεις να διαγράψεις ΟΛΗ την κατηγορία "${name}" και όλα τα κουμπιά της;`, async (ok) => {
+                if (ok) {
+                    // Delete all buttons of this category for the user
+                    await supabase
+                        .from('user_password')
+                        .delete()
+                        .eq('user_id', currentUser.user_id)
+                        .eq('category', name);
+                    // Delete the category
+                    await supabase
+                        .from('user_categories')
+                        .delete()
+                        .eq('user_id', currentUser.user_id)
+                        .eq('category_name', name);
+                    await loadCategories();
+                    await loadButtons();
+                    input.value = "";
+                    showCopyNotification(`Η κατηγορία "${name}" διαγράφηκε!`);
+                    await refreshButtons();
+                }
+            });
+            return;
+        }
+
+        // *** Αλλιώς κάνει delete κουμπί όπως πριν ***
+        const activeCategory = document.querySelector('.category-btn.active')?.dataset.category || 'Others';
+        const { data: buttons } = await supabase
+            .from('user_password')
+            .select('*')
+            .eq('user_id', currentUser.user_id)
+            .eq('category', activeCategory);
+
+        const btn = buttons.find(b => b.name.toLowerCase() === name.toLowerCase());
+        if (!btn) {
+            showCopyNotification('Δεν βρέθηκε κουμπί για διαγραφή');
+            return;
+        }
+        customConfirm(`Θέλεις να διαγράψεις το κουμπί "${btn.name}" ;`, async (ok) => {
+            if (ok) {
+                await removeButton(btn.button_id);
+                showCopyNotification('Το κουμπί διαγράφηκε!');
+                input.value = "";
+                await refreshButtons();
+            }
+        });
+    };
+
+    input.addEventListener('keydown', async (e) => {
+        if (e.key === "Enter") {
             const name = input.value.trim();
+
+            // *** Αν είναι custom κατηγορία, σβήσε κατηγορία με enter ***
+            const allCategoryBtns = Array.from(document.querySelectorAll('.category-btn'));
+            const foundCategoryBtn = allCategoryBtns.find(btn =>
+                btn.dataset.category && btn.dataset.category.toLowerCase() === name.toLowerCase()
+            );
+            const isCustomCategory = foundCategoryBtn &&
+                !DEFAULT_CATEGORIES.includes(foundCategoryBtn.dataset.category);
+
+            if (isCustomCategory) {
+                deleteBtn.click();
+                return;
+            }
+
+            // Αλλιώς συνέχισε ως τώρα (edit κουμπιού ή add νέο)
             const activeCategory = document.querySelector('.category-btn.active')?.dataset.category || 'Others';
             const { data: buttons } = await supabase
                 .from('user_password')
@@ -458,87 +654,17 @@ async function filterButtons(category) {
                 .eq('category', activeCategory);
 
             const exists = buttons.find(b => b.name.toLowerCase() === name.toLowerCase());
-            if (name === "") {
-                addBtn.style.display = '';
-                addBtn.textContent = '➕ Προσθήκη';
-                editBtn.style.display = 'none';
-                deleteBtn.style.display = 'none';
-            } else if (exists) {
-                addBtn.style.display = 'none';
-                editBtn.style.display = '';
-                deleteBtn.style.display = '';
+            if (exists) {
+                openEditModal(exists.button_id);
             } else {
-                addBtn.style.display = '';
-                addBtn.textContent = '➕ Προσθήκη';
-                editBtn.style.display = 'none';
-                deleteBtn.style.display = 'none';
+                addBtn.click();
             }
         }
+    });
 
-        input.addEventListener('input', refreshButtons);
+    await refreshButtons();
+}
 
-        editBtn.onclick = async () => {
-            const name = input.value.trim();
-            const activeCategory = document.querySelector('.category-btn.active')?.dataset.category || 'Others';
-            const { data: buttons } = await supabase
-                .from('user_password')
-                .select('*')
-                .eq('user_id', currentUser.user_id)
-                .eq('category', activeCategory);
-
-            const btn = buttons.find(b => b.name.toLowerCase() === name.toLowerCase());
-            if (!btn) {
-                showCopyNotification('Δεν βρέθηκε κουμπί για edit');
-                return;
-            }
-            openEditModal(btn.button_id);
-        };
-
-        deleteBtn.onclick = async () => {
-            const name = input.value.trim();
-            const activeCategory = document.querySelector('.category-btn.active')?.dataset.category || 'Others';
-            const { data: buttons } = await supabase
-                .from('user_password')
-                .select('*')
-                .eq('user_id', currentUser.user_id)
-                .eq('category', activeCategory);
-
-            const btn = buttons.find(b => b.name.toLowerCase() === name.toLowerCase());
-            if (!btn) {
-                showCopyNotification('Δεν βρέθηκε κουμπί για διαγραφή');
-                return;
-            }
-            customConfirm(`Θέλεις να διαγράψεις το κουμπί "${btn.name}" ;`, async (ok) => {
-                if (ok) {
-                    await removeButton(btn.button_id);
-                    showCopyNotification('Το κουμπί διαγράφηκε!');
-                    input.value = "";
-                    await refreshButtons();
-                }
-            });
-        };
-
-        input.addEventListener('keydown', async (e) => {
-            if (e.key === "Enter") {
-                const name = input.value.trim();
-                const activeCategory = document.querySelector('.category-btn.active')?.dataset.category || 'Others';
-                const { data: buttons } = await supabase
-                    .from('user_password')
-                    .select('*')
-                    .eq('user_id', currentUser.user_id)
-                    .eq('category', activeCategory);
-
-                const exists = buttons.find(b => b.name.toLowerCase() === name.toLowerCase());
-                if (exists) {
-                    openEditModal(exists.button_id);
-                } else {
-                    addBtn.click();
-                }
-            }
-        });
-
-        await refreshButtons();
-    }
 
     // --- Custom Confirm Modal ---
     function customConfirm(message, callback) {
@@ -718,5 +844,6 @@ async function filterButtons(category) {
     }
     updateFooterInfo();
     setInterval(updateFooterInfo, 1000);
+
 
 });
