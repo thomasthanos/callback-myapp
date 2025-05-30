@@ -953,12 +953,14 @@ h1 {
   display: flex;
   gap: 0.5rem;
   overflow-x: auto;
-  max-width: 980px;    /* Φτάνει για πολλές κατηγορίες! */
+  max-width: 780px;    /* Φτάνει για πολλές κατηγορίες! */
   margin: 0 auto;
   scrollbar-width: thin;
   scrollbar-color: #3b82f6 #181f2d;
   padding: 0.35em 0.6em;
   border-radius: 8px;
+  justify-content: center;
+  align-items: center;
   background: #10192a;
   box-shadow: 0 2px 10px #11214d12;
 }
@@ -970,19 +972,6 @@ h1 {
 .categories-nav::-webkit-scrollbar-thumb {
   background: #3b82f6;
   border-radius: 8px;
-}
-
-.category-btn {
-  flex: 0 0 auto;
-  min-width: 70px;
-  padding: 0.42em 1.13em;
-  font-weight: 500;
-  font-size: 1.01em;
-  border-radius: 8px;
-  border: none;
-  background: #181f2d;
-  color: #a5b4fc;
-  transition: background 0.17s, color 0.18s;
 }
 .category-btn.active, .category-btn:hover, .category-btn:focus {
   background: #3b82f6;
