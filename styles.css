@@ -929,3 +929,23 @@ h1 {
 .info-content::-webkit-scrollbar-corner {
   background: #101521;
 }
+#addCategoryBtn svg {
+    display: block;
+    transition: transform 0.14s;
+}
+#addCategoryBtn:hover svg {
+    transform: scale(1.15) rotate(-8deg);
+}
+#addCategoryBtn {
+    background: #181f2d;
+    border: 1.5px solid #2d3748;
+    border-radius: 8px;
+    min-width: 36px;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 8px;
+    margin-left: 4px;
+    box-shadow: 0 1px 8px #15223b33;
+}
