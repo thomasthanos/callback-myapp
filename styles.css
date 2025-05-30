@@ -901,3 +901,31 @@ h1 {
   font-size: 0.9rem;
   line-height: 1.5;
 }
+/* Minimal dark scrollbar για το info-side-panel */
+.info-side-panel, .info-content {
+  scrollbar-width: thin;
+  scrollbar-color: #262e3a #121a27; /* thumb, track */
+}
+
+/* Για Chrome, Edge, Opera */
+.info-side-panel::-webkit-scrollbar,
+.info-content::-webkit-scrollbar {
+  width: 7px;
+  background: #101521;   /* dark background */
+  border-radius: 6px;
+}
+.info-side-panel::-webkit-scrollbar-thumb,
+.info-content::-webkit-scrollbar-thumb {
+  background: #262e3a;      /* thumb */
+  border-radius: 7px;
+  min-height: 30px;
+  border: 2px solid #101521; /* slim border around */
+}
+.info-side-panel::-webkit-scrollbar-thumb:hover,
+.info-content::-webkit-scrollbar-thumb:hover {
+  background: #3b82f6;
+}
+.info-side-panel::-webkit-scrollbar-corner,
+.info-content::-webkit-scrollbar-corner {
+  background: #101521;
+}
