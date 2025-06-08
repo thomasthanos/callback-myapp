@@ -293,6 +293,7 @@ document.getElementById('addCategoryBtn').onclick = async function () {
         const password = document.getElementById('editPassword').value.trim();
         const image = document.getElementById('editImage').value.trim();
         const activeCategory = document.querySelector('.category-btn.active')?.dataset.category || 'Others';
+console.log("Saving button_id:", button_id);
 
         if (!name) {
             showCopyNotification('Το όνομα κουμπιού δεν μπορεί να είναι κενό!');
